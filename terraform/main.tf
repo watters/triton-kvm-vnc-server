@@ -2,8 +2,8 @@ variable "vnc_password" {
     default = "password"
 }
 
-data "triton_image" "ubuntu" {
-  name        = "ubuntu-certified-16.04"
+data "triton_image" "kvm-vnc" {
+  name        = "kvm-vnc"
   type        = "zvol"
   most_recent = true
 }
@@ -20,7 +20,7 @@ resource "triton_firewall_rule" "vnc_allow_ssh" {
 resource "triton_machine" "kvm-desktop" {
     name = "kvm-desktop"
     package = "k4-general-kvm-15.75G"
-    image   = "${data.triton_image.ubuntu.id}"
+    image   = "${data.triton_image.kvm-vnc.id}"
 
     tags = {
         vnc_allow_ssh = "true"
@@ -33,63 +33,75 @@ resource "triton_machine" "kvm-desktop" {
         "${data.triton_network.public.id}"
     ]
 
-    provisioner "remote-exec" {
-        inline = [
-            "sudo apt update && sudo apt upgrade -y",
-            "sudo apt install -y xfce4 xfce4-goodies tightvncserver",
-            "mkdir -p ~/.vnc",
-        ]
-        connection {
-            type = "ssh"
-            user = "ubuntu"
-        }
-    }
+    // provisioner "remote-exec" {
+    //     inline = [
+    //         "sudo apt update && sudo apt upgrade -y",
+    //         "sudo apt install -y xfce4 xfce4-goodies tightvncserver",
+    //         "mkdir -p ~/.vnc",
+    //     ]
+    //     connection {
+    //         type = "ssh"
+    //         user = "ubuntu"
+    //     }
+    // }
 
-    provisioner "file" {
-        source = "./.vnc/"
-        destination = "/home/ubuntu/.vnc"
+    // provisioner "file" {
+    //     source = "./.vnc/"
+    //     destination = "/home/ubuntu/.vnc"
 
-        connection {
-            type = "ssh"
-            user = "ubuntu"
-        }
-    }
+    //     connection {
+    //         type = "ssh"
+    //         user = "ubuntu"
+    //     }
+    // }
+
+    // provisioner "remote-exec" {
+    //     inline = [
+    //         "set -x",
+    //         "chmod 600 ~/.vnc/passwd",
+    //         "chmod +x ~/.vnc/xstartup",
+    //         "echo \"${var.vnc_password}\" | vncpasswd -f > ~/.vnc/passwd",
+    //     ]
+
+    //     connection {
+    //         type = "ssh"
+    //         user = "ubuntu"
+    //     }
+    // }
+
+    // provisioner "file" {
+    //     source = "vncserver@.service"
+    //     destination = "/home/ubuntu/vncserver@.service"
+
+    //     connection {
+    //         type = "ssh",
+    //         user = "ubuntu"
+    //     }
+    // }
+
+    // provisioner "remote-exec" {
+    //     inline = [
+    //         "set -x",
+    //         "sudo mv /home/ubuntu/vncserver@.service /etc/systemd/system/vncserver@.service",
+    //         "sudo systemctl daemon-reload",
+    //         "sudo systemctl enable vncserver@1.service",
+    //         "sudo systemctl start vncserver@1",
+    //     ]
+
+    //     connection {
+    //         type = "ssh",
+    //         user = "ubuntu"
+    //     }
+    // }
 
     provisioner "remote-exec" {
         inline = [
             "set -x",
-            "chmod 600 ~/.vnc/passwd",
-            "chmod +x ~/.vnc/xstartup",
             "echo \"${var.vnc_password}\" | vncpasswd -f > ~/.vnc/passwd",
         ]
 
         connection {
             type = "ssh"
-            user = "ubuntu"
-        }
-    }
-
-    provisioner "file" {
-        source = "vncserver@.service"
-        destination = "/home/ubuntu/vncserver@.service"
-
-        connection {
-            type = "ssh",
-            user = "ubuntu"
-        }
-    }
-
-    provisioner "remote-exec" {
-        inline = [
-            "set -x",
-            "sudo mv /home/ubuntu/vncserver@.service /etc/systemd/system/vncserver@.service",
-            "sudo systemctl daemon-reload",
-            "sudo systemctl enable vncserver@1.service",
-            "sudo systemctl start vncserver@1",
-        ]
-
-        connection {
-            type = "ssh",
             user = "ubuntu"
         }
     }

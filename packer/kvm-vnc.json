@@ -1,0 +1,65 @@
+{
+    "variables": {
+        "triton_account": "{{ env `SDC_ACCOUNT` }}",
+        "triton_key_id": "{{ env `SDC_KEY_ID` }}",
+        "triton_url": "{{ env `SDC_URL` }}",
+        "message": "Built by Packer!"
+    },
+    "builders": [
+        {
+            "type": "triton",
+            "triton_account": "{{ user `triton_account` }}",
+            "triton_key_id": "{{ user `triton_key_id` }}",
+            "triton_url": "{{ user `triton_url` }}",
+            "source_machine_image_filter": {
+                "name": "ubuntu-certified-16.04",
+                "type": "zvol",
+                "most_recent": true
+            },
+            "ssh_username": "ubuntu",
+            "source_machine_package": "k4-general-kvm-7.75G",
+            "image_name": "kvm-vnc",
+            "image_version": "0.1.1",
+            "image_description": "This image was built by {{ user `triton_account` }}",
+            "source_machine_name": "kvm-vnc-source-machine-{{uuid}}"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": [
+                "sudo apt update && sudo apt upgrade -y",
+                "sudo apt install -y xfce4 xfce4-goodies tightvncserver",
+                "mkdir -p ~/.vnc"
+            ]
+        },
+        {
+            "type": "file",
+            "source": "./.vnc/",
+            "destination": "/home/ubuntu/.vnc"
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "set -x",
+                "chmod 600 ~/.vnc/passwd",
+                "chmod +x ~/.vnc/xstartup",
+                "echo \"password\" | vncpasswd -f > ~/.vnc/passwd"
+            ]
+        },
+        {
+            "type": "file",
+            "source": "./.vnc/",
+            "destination": "/home/ubuntu/.vnc"
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "set -x",
+                "sudo mv /home/ubuntu/vncserver@.service /etc/systemd/system/vncserver@.service",
+                "sudo systemctl daemon-reload",
+                "sudo systemctl enable vncserver@1.service"
+            ]
+        }
+    ]
+}
