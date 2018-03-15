@@ -49,8 +49,8 @@
         },
         {
             "type": "file",
-            "source": "./.vnc/",
-            "destination": "/home/ubuntu/.vnc"
+            "source": "vncserver@.service",
+            "destination": "/home/ubuntu/vncserver@.service"
         },
         {
             "type": "shell",
