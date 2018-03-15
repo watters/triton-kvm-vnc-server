@@ -33,67 +33,6 @@ resource "triton_machine" "kvm-desktop" {
         "${data.triton_network.public.id}"
     ]
 
-    // provisioner "remote-exec" {
-    //     inline = [
-    //         "sudo apt update && sudo apt upgrade -y",
-    //         "sudo apt install -y xfce4 xfce4-goodies tightvncserver",
-    //         "mkdir -p ~/.vnc",
-    //     ]
-    //     connection {
-    //         type = "ssh"
-    //         user = "ubuntu"
-    //     }
-    // }
-
-    // provisioner "file" {
-    //     source = "./.vnc/"
-    //     destination = "/home/ubuntu/.vnc"
-
-    //     connection {
-    //         type = "ssh"
-    //         user = "ubuntu"
-    //     }
-    // }
-
-    // provisioner "remote-exec" {
-    //     inline = [
-    //         "set -x",
-    //         "chmod 600 ~/.vnc/passwd",
-    //         "chmod +x ~/.vnc/xstartup",
-    //         "echo \"${var.vnc_password}\" | vncpasswd -f > ~/.vnc/passwd",
-    //     ]
-
-    //     connection {
-    //         type = "ssh"
-    //         user = "ubuntu"
-    //     }
-    // }
-
-    // provisioner "file" {
-    //     source = "vncserver@.service"
-    //     destination = "/home/ubuntu/vncserver@.service"
-
-    //     connection {
-    //         type = "ssh",
-    //         user = "ubuntu"
-    //     }
-    // }
-
-    // provisioner "remote-exec" {
-    //     inline = [
-    //         "set -x",
-    //         "sudo mv /home/ubuntu/vncserver@.service /etc/systemd/system/vncserver@.service",
-    //         "sudo systemctl daemon-reload",
-    //         "sudo systemctl enable vncserver@1.service",
-    //         "sudo systemctl start vncserver@1",
-    //     ]
-
-    //     connection {
-    //         type = "ssh",
-    //         user = "ubuntu"
-    //     }
-    // }
-
     provisioner "remote-exec" {
         inline = [
             "set -x",
@@ -105,12 +44,8 @@ resource "triton_machine" "kvm-desktop" {
             user = "ubuntu"
         }
     }
-
-    provisioner "local-exec" {
-        command = "ssh -oStrictHostKeyChecking=no -L 5901:127.0.0.1:5901 -N -f -l ubuntu ${triton_machine.kvm-desktop.primaryip}"
-    }
 }
 
-output "kvm_desktop_ip" {
-    value = "${triton_machine.kvm-desktop.primaryip}"
+output "ssh_tunnel_command" {
+    value = "ssh -oStrictHostKeyChecking=no -L 5901:127.0.0.1:5901 -N -f -l ubuntu ${triton_machine.kvm-desktop.primaryip}"
 }
